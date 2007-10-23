@@ -32,6 +32,7 @@ public interface UVDistribution extends Distribution {
   public double lnucdf(final double x);
    
   public boolean isAtom(final double x);
+  public double  closestAtom(final double x);
 
   
   // Now, define new functions that are new to UVDistribution
@@ -68,7 +69,7 @@ public interface UVDistribution extends Distribution {
   public double kurtosisExcess();
   
   /** The proper kurtosis of the distribution.
-   * The standard Gaussian distribution has a propoer kurtosis of +3.
+   * The standard Gaussian distribution has a proper kurtosis of +3.
    * Usually, one considers the kurtosis excess (see <code>kurtosisExcess</code>),
    * where one subtracts 3 from the proper kurtosis.
    */

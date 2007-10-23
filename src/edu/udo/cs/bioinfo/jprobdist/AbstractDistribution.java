@@ -6,6 +6,9 @@
  */
 
 package edu.udo.cs.bioinfo.jprobdist;
+import edu.udo.cs.bioinfo.jprobdist.MathFunctions.RealFunction;
+import static edu.udo.cs.bioinfo.jprobdist.MathFunctions.*;
+
 
 /**
  * This class represents an abstract implementation of a
@@ -21,50 +24,19 @@ package edu.udo.cs.bioinfo.jprobdist;
  */
 public abstract class AbstractDistribution implements UVDistribution {
   
-  // lnf not implemented
-  // lnP not implemented
-  // lncdf not implemented
-  // lnucdf not implemented
-  // isAtom not implemented
-  // isFinite not implemented
-  // moment, cmoment not implemented
-  // support, min, max not implemented
-  // conv not implemented
+  // Methods deferred to sublcasses:    // Methods to be overridden: 
+  // lnf                                // f
+  // lnP                                // P
+  // lncdf                              // cdf
+  // lnucdf                             // ucdf
+  // isAtom        
+  // isFinite
+  // moment, cmoment                    // E,Var,std,skewness,kurtosisExcess
+  // support, min, max
+  // conv
+  //                                    // random
   
-  /* NOTE: P(double x), P(Interval ab)
-   * return the probability mass at point x resp. in the interval ab.
-   *
-   * In principle, there are three ways to compute this probability,
-   * depending on the location of the interval.
-   * 1. We can base the computation on the cdf,
-   * if no cancellation problems occur when computing cdf(b) - cdf(a),
-   * and if cdf() has an efficient implementation.
-   * 2. We can base the computation on the upper cdf,
-   * if no cancellation problems occur when computing ucdf(a) - ucdf(b),
-   * and if ucdf() has an efficient implementation (NOT by default!)
-   * 3. We can base the computation on the sum of atomic probabilities P(x),
-   * where x is in the interval ab.
-   * This is preferable when the distribution is discrete and no efficient
-   * cdf is given.
-  public double P(Interval ab) {
-    if (ab.type == Interval.Type.NaN) return Double.NaN;
-    if (ab.isEmpty) return 0.0;
-    if (ab.isPoint) return P(ab.a);
-    switch(ab.type) { // no breaks are required because all braches return.
-      case Closed:
-        return(cdf(ab.b)-cdf(ab.a)+P(ab.a));
-      case Open:
-        return(cdf(ab.b)-cdf(ab.a)-P(ab.b));
-      case OpenClosed:
-        return(cdf(ab.b)-cdf(ab.a));
-      case ClosedOpen:
-        return(cdf(ab.b)-cdf(ab.a)+P(ab.a)-P(ab.b));
-      default:
-        return Double.NaN;
-    }
-  }
-   */
-  
+    
   // =================================================================
   // provide a default implementation of f, P, cdf, ucdf
   // by taking the exponentials of their logarithmic implementations.
@@ -89,8 +61,8 @@ public abstract class AbstractDistribution implements UVDistribution {
     return Math.exp(lnucdf(x));
   }
   
-  // =====================================================================
-  // provide generic implementations of E, Var, std, kurtosis, median, iqr,
+  // =======================================================================
+  // provide generic implementations of E, Var, std, kurtosis*, median, iqr,
   // and boxPlotStatistics
   
   public double E() {
@@ -142,31 +114,35 @@ public abstract class AbstractDistribution implements UVDistribution {
   // qf(p) := inf {x : cdf(x) >= p}
   
   public double qf(final double p) {
+    return qfNumeric(p, 0.0);
+  }
+  
+  /** quantile function, computed by a numerical root finding method.
+   * The result is accurate up to the given tolerance tol, i.e.,
+   * if qf(p) = inf {x : cdf(x)>=p}, and the function returns y,
+   * then |y=qf(p)|<=tol.
+   * The special value tol=0 computes up to best possible numerical accuracy.
+   *@param p probability 0<=p<=1 for which to compute the quantile.
+   *@param tol numerical absolute tolerance for the result
+   *@return quantile of p
+   */
+  final public double qfNumeric(final double p, final double tol) {
     if (p<0 || p>1)
       throw new IllegalArgumentException("qf(p): p must be in [0,1], is "+Double.toString(p));
     if (p==0.0) return Double.NEGATIVE_INFINITY;
     if (p==1.0) return max();
     // now 0<p<1
+
+    // check whether min is the solution
+    final double m = min();
+    if (m!=Double.NEGATIVE_INFINITY && cdf(m)>=p) return m;
     
     // find an initial interval [L,R] such that p is in [cdf(L),cdf(R)]
-    double L = min();
-    if (L==Double.NEGATIVE_INFINITY) {
-      L=Double.MIN_VALUE;
-    }
-    double R = max();
-    if (R==Double.POSITIVE_INFINITY) {
-      R=Double.MAX_VALUE;
-    }
-    
-    // loop until L==R
-    while (L!=R) {
-      final double C    = (L<0 && R>0)? (R/2-L/2)+L : (L/2+R/2);
-      final double Ccdf = cdf(C);
-      if (p<=Ccdf) R=C; else L=C;
-    }
-    
-    assert(cdf(L)>=p); // if this ever fails, we need to write more careful code
-    return L;
+    RealFunction fun = new RealFunction() { 
+      public final double valueAt(final double x) { return(cdf(x)-p); }
+    };
+    Interval i0 = findRootInterval(fun, m, max());
+    return findRootBisection(fun, i0.a, i0.b, tol);
   }
   
   
@@ -232,5 +208,9 @@ public abstract class AbstractDistribution implements UVDistribution {
     return isAtom(x[0]);
   }
   
+  public final double closestAtom(final double... x) {
+    if (x.length!=1) throw new DimensionMismatchException();
+    return closestAtom(x[0]);
+  }
   
 }

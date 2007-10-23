@@ -32,6 +32,10 @@ public abstract class ContinuousDistribution extends AbstractDistribution {
     return false;
   }
   
+  public final double closestAtom(final double x) {
+    return Double.NaN;
+  }
+  
   public final boolean isFinite() {
     return false;
   }

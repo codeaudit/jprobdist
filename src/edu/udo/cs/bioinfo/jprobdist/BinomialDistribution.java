@@ -67,23 +67,11 @@ public class BinomialDistribution extends FiniteDistribution
 
   public double lnP(double x) {
     if (!isAtom(x)) return Double.NEGATIVE_INFINITY;
+    if (x==0) return ( (lnp==Double.NEGATIVE_INFINITY)? 0.0 : n*lnq);
+    if (x==n) return ( (lnq==Double.NEGATIVE_INFINITY)? 0.0 : n*lnp);
     return(lnbincoeff(n,x)+x*lnp+(n-x)*lnq);
   }
-
-  public double lnP(final Interval ab) {
-    double p = Double.NEGATIVE_INFINITY;
-    Iterator<Double> it = iterator(ab);
-    while (it.hasNext()) p = logsum(p, lnP(it.next()));
-    return p;
-  }
   
-  @Override
-  public double P(final Interval ab) {
-    double p = 0.0;
-    Iterator<Double> it = iterator(ab);
-    while (it.hasNext()) p += P(it.next());
-    return p;
-  }  
   
   @Override
   public double E() {
@@ -134,45 +122,27 @@ public class BinomialDistribution extends FiniteDistribution
   }
   
   
-  public boolean isAtom(double x) {
-    return (x>=0 && x<=n && (long)x==x);
+  public boolean isAtom(final double x) {
+    return (x>=0 && x<=n && x==MathFunctions.xround(x));
+  }
+  
+  public final double closestAtom(final double x) {
+    if (x<=0) return 0;
+    if (x>=n) return n;
+    return xround(x);
   }
   
   public Iterator<Double> iterator() {
-    return new AtomIterator(0,n);
+    return new LatticeIterator(n, 0.0, 1.0);
   }
   
   public Iterator<Double> iterator(Interval ab) {
     final Interval fl = ab.getContainedEpsInterval(1.0);
     final long first = (fl.a<=0)? 0 : (long)fl.a;
     final long last  = (fl.b>=n)? n : (long)fl.b;
-    return new AtomIterator(first,last);
+    return new LatticeIterator(last-first, first, 1.0);
   }
 
-  
-  /** the atom iterator for a Binomial distribution */
-  public static class AtomIterator implements Iterator<Double> {
-    private long nextk;
-    private final long lastk;
-    private AtomIterator(long first, long last) {
-      nextk=first;
-      lastk=last;
-    }
-    
-    public boolean hasNext() {
-      return (nextk<=lastk);
-    }
-
-    public Double next() {
-      if(!hasNext()) throw new NoSuchElementException(String.valueOf(nextk));
-      return(Double.valueOf(nextk++));
-    }
-
-    public void remove() {
-      throw new UnsupportedOperationException();
-    }  
-  } // end of iterator class
-  
   
   /** Estimate the Binomial success parameter p from a data sample X,
    * whose elements are assumed to be realization of Binomial(n,p)

@@ -24,22 +24,22 @@ public class MVStdGaussianDistribution implements Distribution {
     this.d = d;
   }
 
-  public double f(double... x) {
-    if (x.length!=3) throw new IllegalArgumentException();
-    return 1.0;
+  public double lnf(double... x) {
+    return 0.0;
+  }
+  
+
+  public double lnP(double... x) {
+    return Double.NEGATIVE_INFINITY;
   }
 
-  public double P(double... x) {
-    return 1.0;
+
+  public double lncdf(final double... x) {
+    return 0.0;
   }
 
-
-  public double cdf(final double... x) {
-    return 1.0;
-  }
-
-  public double ucdf(final double... x) {
-    return 1.0;
+  public double lnucdf(final double... x) {
+    return 0.0;
   }
 
   public boolean isAtom(final double... x) {
@@ -48,6 +48,23 @@ public class MVStdGaussianDistribution implements Distribution {
   
   public boolean isFinite() {
     return false;
+  }
+
+ 
+  public double cdf(final double... x) {
+    return 1.0;
+  }
+
+  public double ucdf(final double... x) {
+    return 0.0;
+  }
+
+  public double f(final double... x) {
+    return 1.0;
+  }
+
+  public double P(final double... x) {
+    return 0.0;
   }
   
   

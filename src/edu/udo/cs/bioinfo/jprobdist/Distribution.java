@@ -13,9 +13,11 @@ package edu.udo.cs.bioinfo.jprobdist;
  * While the interface functionality primarily aims at probability distributions
  * (i.e., unsigned measures with total mass 1), this is never enforced.
  *
+ * See also a related project at http://www.iro.umontreal.ca/~simardr/ssj/indexe.html
+ *
  * <p>
  * This code is intended for teaching and research purposes only.
- * This code is licensed under the Artistic License 2.0.
+ * This code is licensed under the Apache License 2.0.
  * </p>
  * 
  * In the general multivariate case, points at which funcitons should be
@@ -86,6 +88,11 @@ public interface Distribution {
   
   /** returns true if and only if point x is an atom */
   public boolean isAtom(final double... x);
+  
+  /** returns the closest atom to x, if there are any atoms.
+   * Otherwise returns NaN
+   */
+  public double closestAtom(final double... x);
   
   /** returns true iff this is a finite distribution */
   public boolean isFinite();

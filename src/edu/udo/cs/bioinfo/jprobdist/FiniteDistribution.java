@@ -12,72 +12,69 @@ import java.util.Iterator;
  * This class provides basic support for arbitrary finite probability distributions.
  * @author Sven Rahmann
  */
-public abstract class FiniteDistribution extends DiscreteDistribution 
-    implements Iterable<Double> {
+public abstract class FiniteDistribution extends DiscreteDistribution {
 
-  // does not implement lnP
-  // does not implement min
-  // does not implement max
-  // does not implement iterator
+  // Missing implementations for finite distributions:
+  // lnP(x)
+  // min(), max()
+  // iterator
 
-
-  // explicit moment implementation by iterating over all atoms
-  public double moment(final double m) {
+  
+  // simply add up the finitely many atom probabilities in the interval.
+  // Should be overridden with more efficient methods in subclasses.
+  public double lnP(final Interval ab) {
+    double p = Double.NEGATIVE_INFINITY;
+    Iterator<Double> it = iterator(ab);
+    while (it.hasNext()) p = MathFunctions.logsum(p, lnP(it.next()));
+    return p;
+  }
+  
+  // simply add up the finitely many atom probabilities in the interval.
+  // Should be overridden with more efficient methods in subclasses.
+  @Override
+  public double P(final Interval ab) {
+    double p = 0.0;
+    Iterator<Double> it = iterator(ab);
+    while (it.hasNext()) p += P(it.next());
+    return p;
+  }  
+  
+  // enumerating implementation of arbitrary Expectation function.
+  // Cannot be overridden in subclasses.
+  // But particular expectation functions,
+  // such as E(), moment(m), cmoment(m), entropy(),
+  // should be overridden where possible for efficiency!
+  public final double E(final MathFunctions.RealFunction h) {
     double r = 0.0;
     for(double x : this) {
-      final double lp = lnP(x);
-      r += Math.exp(lp) * Math.pow(x, m);
+      final double p = P(x);
+      if (p==0.0) continue;
+      final double hx = h.valueAt(x);
+      if (hx==0.0) continue;
+      r += p * hx;
     }
     return r;
   }
 
-  // explicit central moment implementation by iterating over all atoms
-  public double cmoment(final double c) {
-    final double E = E();
-    double r = 0.0;
-    for(double x : this) {
-      final double lp = lnP(x);
-      r += Math.exp(lp) * Math.pow(x-E, c);
-    }
-    return r;
-  }
-
-  
-  public Interval support() {
-    return new Interval(min(),max(),Interval.Type.Closed);
-  }
-
-  public final boolean isFinite() {
-    return true;
-  }
-
-  // an explicit implementation of the entropy function by summation
-  public double entropy() {
-    double H = 0.0;
-    for(double x : this) {
-      final double lp = lnP(x);
-      H += lp * Math.exp(lp);
-    }
-    assert(H<=0);
-    return -H;
-  }
-  
-  // an inefficient implementation of testing whether x is an atom
+   
+  // an inefficient implementation of testing whether x is an atom.
+  // Should be overriden in subclasses!
   public boolean isAtom(double x) {
     for(double xx : this) {
       if(xx==x) return true;
     }
     return false;
   }
-  
-  /** returns an iterator that iterates over all atoms of the
-   * present finite distribution
-   */
-  public abstract Iterator<Double> iterator();
-  
-  /** returns an iterator that iterates over the atoms of
-   *the present finite distribtion in the given interval
-   */
-  public abstract Iterator<Double> iterator(Interval ab);
+
+  // the support of a finite distribution is always closed and compact.
+  public Interval support() {
+    return new Interval(min(),max(),Interval.Type.Closed);
+  }
+
+  // of course it's finite. Cannot be overriden in subclasses.
+  public final boolean isFinite() {
+    return true;
+  }
+
   
 }
