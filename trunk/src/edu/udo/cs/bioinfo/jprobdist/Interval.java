@@ -24,6 +24,7 @@ public class Interval {
   public final boolean isPoint;
   /** true iff this interval is empty (and not NaN) */
   public final boolean isEmpty;
+
  
   
   /** create a new interval (a,b), [a,b], (a,b], or [a,b),
@@ -94,10 +95,16 @@ public class Interval {
   
   // Finally, we define some useful constants:
   
-  /** the empty interval */
+  /** a representation of the empty interval */
   public static final Interval AnEmptyInterval = new Interval(0,0,Type.Open);
+  /** the point 0 as the interval [0,0] */
+  public static final Interval TheZeroInterval = new Interval(0,0,Type.Closed);
   /** the whole real line (open at infinity) */
-  public static final Interval TheRealLine      = new Interval(Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, Type.Open);
+  public static final Interval TheRealLine     = new Interval(Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, Type.Open);
+  /** the NaN interbal */
+  public static final Interval TheNaNInterval  = new Interval(Double.NaN, Double.NaN, Type.NaN);
+  /** the nonnegative real numbers (open at infinity) */
+  public static final Interval TheNonnegativeReals = new Interval(0, Double.POSITIVE_INFINITY, Type.ClosedOpen);
   
 }
 
