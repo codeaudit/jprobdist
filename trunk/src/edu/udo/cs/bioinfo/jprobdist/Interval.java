@@ -52,7 +52,7 @@ public class Interval {
   }
  
   /** types of one-dimensional intervals */
-  public enum Type {
+  public static enum Type {
     /** represents an interval (a,b) that is open at both boundaries */
     Open, 
     /** represents an interval [a,b] that is closed at both boundaries */

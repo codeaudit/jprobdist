@@ -9,7 +9,6 @@ package edu.udo.cs.bioinfo.jprobdist;
 import java.util.Iterator;
 import static java.lang.Math.*;
 import static edu.udo.cs.bioinfo.jprobdist.MathFunctions.*;
-import java.util.NoSuchElementException;
 
 /**
  * This class implements the Binomial distribution, i.e.,
@@ -102,6 +101,7 @@ public class BinomialDistribution extends FiniteDistribution
     return n;
   }
   
+  @Override
   public double median() {
     // the median is either floor(E), or one less, or one more [?]
     final double x = floor(E)-1;
@@ -122,6 +122,7 @@ public class BinomialDistribution extends FiniteDistribution
   }
   
   
+  @Override
   public boolean isAtom(final double x) {
     return (x>=0 && x<=n && x==MathFunctions.xround(x));
   }
